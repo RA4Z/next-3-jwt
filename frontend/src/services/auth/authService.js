@@ -10,8 +10,18 @@ export const authService = {
             .then(async (respostaDoServidor) => {
                 if (!respostaDoServidor.ok) throw new Error('Usuário ou senha inválidos!')
                 const body = respostaDoServidor.body;
-                console.log(body.data.access_token)
+
                 tokenService.save(body.data.access_token)
+                return body
+            })
+            .then(async ({ data }) => {
+                const { refresh_token } = data;
+
+                const response = await HttpClient('/api/refresh', {
+                    method: 'POST',
+                    body: { refresh_token }
+                })
+                console.log(response)
             })
     },
     async getSession(ctx = null) {
@@ -23,9 +33,9 @@ export const authService = {
                 'Authorization': `Bearer ${token}`
             }
         })
-        .then ((response) => {
-            if(!response.ok) throw new Error('Não autorizado')
-            return response.body.data
-        })
+            .then((response) => {
+                if (!response.ok) throw new Error('Não autorizado')
+                return response.body.data
+            })
     }
 }
